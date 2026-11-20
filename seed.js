@@ -1,0 +1,12 @@
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import Student from './models/Student.js';
+if (!process.env.MONGODB_URI) throw new Error('Set MONGODB_URI in .env');
+if (!process.env.SEED_ADMIN_PASSWORD || process.env.SEED_ADMIN_PASSWORD.length < 12) throw new Error('Set SEED_ADMIN_PASSWORD (at least 12 characters) in .env before seeding.');
+await mongoose.connect(process.env.MONGODB_URI);
+const email = process.env.SEED_ADMIN_EMAIL || 'admin@hari-college.local';
+const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD, 12);
+await Student.findOneAndUpdate({ email }, { username: 'College Admin', email, registerNumber: 'ADMIN001', passwordHash, role: 'admin', active: true }, { upsert: true, new: true, runValidators: true });
+console.log(`Admin account created/updated: ${email}`);
+await mongoose.disconnect();
